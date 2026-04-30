@@ -1,34 +1,76 @@
 <script setup>
 import api from "@/axios";
 import { ref, onMounted, nextTick } from "vue";
+import { useToast } from "vue-toastification";
+import router from "@/router";
 
+const toast = useToast();
 const table = ref(null);
 const products = ref([]);
 
 const display = async () => {
+  const fd = new FormData();
   try {
-    const res = await api.get("");
+    const res = await api.get("", fd);
     products.value = res.data;
-
-    await nextTick();
-
-    table = window.$("#myTable").DataTable();
-  } catch (e) {}
+  } catch (e) {
+    toast.error("Failed to Load" + e);
+  }
 };
 
 const editProductName = ref("");
 const editPrice = ref("");
 const editQuantity = ref("");
-const editImage = ref("");
+const editImage = ref(null);
 
 const editBtn = (product) => {
   editProductName.value = product.product_name;
   editPrice.value = product.price;
   editQuantity.value = product.quantity;
+  editImage.value = product.image_url;
+};
+
+const handleImage = (e) => {
+  editImage.value = e.target.files[0];
+};
+
+const updateBtn = async (id) => {
+  const fd = new FormData();
+  fd.append("product_name", editProductName.value);
+  fd.append("price", editPrice.value);
+  fd.append("quantity", editQuantity.value);
+  fd.append("image", editImage.value);
+
+  try {
+    const res = await api.put(`/${id}`, fd, {});
+
+    toast.success("Product updated successfully");
+    display();
+  } catch (e) {
+    toast.error("Error " + e);
+  }
+};
+
+const deleteBtn = async (id) => {
+  const fd = new FormData();
+
+  try {
+    let prompt = confirm("Are you sure you want to delete this Product?");
+
+    if (prompt) {
+      const res = api.delete(`/${id}`, fd);
+      toast.success("Deleted Successfully");
+      display();
+    }
+  } catch (e) {
+    toast.error("error" + e);
+  }
 };
 
 onMounted(() => {
   display();
+
+  nextTick();
 });
 </script>
 
@@ -88,7 +130,7 @@ onMounted(() => {
                 aria-hidden="true"
               >
                 <div
-                  class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm"
+                  class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-md"
                   role="document"
                 >
                   <div class="modal-content">
@@ -104,7 +146,7 @@ onMounted(() => {
                       ></button>
                     </div>
                     <div class="modal-body">
-                      <form action="">
+                      <form @submit.prevent="updateBtn(product.id)">
                         <div class="form-floating mb-3">
                           <input
                             type="text"
@@ -125,7 +167,7 @@ onMounted(() => {
                             id="formId1"
                             placeholder=""
                             required
-                            v-model="quantity"
+                            v-model="editQuantity"
                           />
                           <label for="formId1">Quantity</label>
                         </div>
@@ -137,11 +179,19 @@ onMounted(() => {
                             id="formId1"
                             placeholder=""
                             required
-                            v-model="price"
+                            v-model="editPrice"
                             step="0.01"
                           />
                           <label for="formId1">Price</label>
                         </div>
+
+                        <img
+                          :src="editImage"
+                          alt=""
+                          class="mx-auto"
+                          style="width: 80px; height: 80px"
+                        />
+
                         <div class="form-floating mb-3">
                           <input
                             type="file"
@@ -155,29 +205,27 @@ onMounted(() => {
                           />
                           <label for="formId1">Upload Image</label>
                         </div>
+                        <div class="modal-footer">
+                          <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                          >
+                            Close
+                          </button>
+                          <button type="submit" class="btn btn-primary">
+                            Update
+                          </button>
+                        </div>
                       </form>
-                    </div>
-                    <div class="modal-footer">
-                      <button
-                        type="button"
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal"
-                      >
-                        Close
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-primary"
-                        data-bs-dismiss="modal"
-                      >
-                        Save
-                      </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <button>Delete</button>
+              <button class="btn btn-danger" @click="deleteBtn(product.id)">
+                Delete
+              </button>
             </td>
           </tr>
         </tbody>
