@@ -1,7 +1,10 @@
 <script setup>
 import api from "@/axios";
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick, watch } from "vue";
 import { useToast } from "vue-toastification";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
 
 const toast = useToast();
 const table = ref(null);
@@ -18,6 +21,15 @@ const display = async () => {
   } catch (e) {
     toast.error("Failed to Load" + e);
   }
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleDateString("en-PH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 };
 
 const editProductName = ref("");
@@ -44,7 +56,7 @@ const updateBtn = async (id) => {
   fd.append("image", editImage.value);
 
   try {
-    const res = await api.put(`/${id}`, fd, {});
+    const res = await api.put(`/${id}`, fd);
 
     toast.success("Product updated successfully");
     display();
@@ -60,9 +72,10 @@ const deleteBtn = async (id) => {
     let prompt = confirm("Are you sure you want to delete this Product?");
 
     if (prompt) {
-      const res = api.delete(`/${id}`, fd);
-      display();
+      const res = await api.delete(`/${id}`, fd);
+
       toast.success("Deleted Successfully");
+      display();
     }
   } catch (e) {
     toast.error("error" + e);
@@ -101,8 +114,8 @@ onMounted(display);
                 style="width: 50px; height: 50px"
               />
             </td>
-            <td>{{ product.created_at }}</td>
-            <td>{{ product.updated_at }}</td>
+            <td>{{ formatDate(product.created_at) }}</td>
+            <td>{{ formatDate(product.updated_at) }}</td>
             <td colspan="2">
               <!-- Modal trigger button -->
               <button
@@ -197,7 +210,6 @@ onMounted(display);
                             name="formId1"
                             id="formId1"
                             placeholder=""
-                            required=""
                             @change="handleImage"
                             accept="image/*"
                           />
