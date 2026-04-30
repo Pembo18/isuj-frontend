@@ -2,17 +2,19 @@
 import api from "@/axios";
 import { ref, onMounted, nextTick } from "vue";
 import { useToast } from "vue-toastification";
-import router from "@/router";
 
 const toast = useToast();
 const table = ref(null);
 const products = ref([]);
 
 const display = async () => {
-  const fd = new FormData();
   try {
-    const res = await api.get("", fd);
+    const res = await api.get("");
     products.value = res.data;
+
+    await nextTick(table.value);
+
+    table.value = window.$("#myTable").DataTable();
   } catch (e) {
     toast.error("Failed to Load" + e);
   }
@@ -59,19 +61,15 @@ const deleteBtn = async (id) => {
 
     if (prompt) {
       const res = api.delete(`/${id}`, fd);
-      toast.success("Deleted Successfully");
       display();
+      toast.success("Deleted Successfully");
     }
   } catch (e) {
     toast.error("error" + e);
   }
 };
 
-onMounted(() => {
-  display();
-
-  nextTick();
-});
+onMounted(display);
 </script>
 
 <template>
@@ -87,7 +85,7 @@ onMounted(() => {
             <th scope="col">Image</th>
             <th scope="col">Created at</th>
             <th scope="col">Update at</th>
-            <th scope="col" colspan="2">Action</th>
+            <th scope="col">Action</th>
           </tr>
         </thead>
         <tbody>

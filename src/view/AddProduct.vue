@@ -96,7 +96,7 @@ const addBtn = async (e) => {
         type="submit"
         role="button"
       >
-        Button
+        Add Product
       </button>
     </form>
   </div>
