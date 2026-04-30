@@ -6,15 +6,13 @@ import api from "@/axios";
 const product_name = ref("");
 const price = ref("");
 const quantity = ref("");
-const image = ref("");
+const image = ref(null);
 
 const handleImage = (e) => {
   image.value = e.target.files[0];
 };
 
 const addBtn = async (e) => {
-  e.preventDefault();
-
   const formData = new FormData();
   formData.append("product_name", product_name.value);
   formData.append("price", price.value);
@@ -28,6 +26,10 @@ const addBtn = async (e) => {
       },
     });
     useToast().success("Product added successfully!");
+    product_name.value = "";
+    price.value = "";
+    quantity.value = "";
+    image.value = "";
   } catch (e) {
     useToast().error("Failed to add product.");
   }

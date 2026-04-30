@@ -1,23 +1,25 @@
 <script setup>
 import api from "@/axios";
-import { ref, onMounted, nextTick, watch } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useToast } from "vue-toastification";
-import { useRoute } from "vue-router";
-
-const route = useRoute();
 
 const toast = useToast();
-const table = ref(null);
 const products = ref([]);
+let dataTable = null;
 
 const display = async () => {
   try {
+    if (dataTable) {
+      dataTable.destroy();
+      dataTable = null;
+    }
+
     const res = await api.get("");
     products.value = res.data;
 
-    await nextTick(table.value);
+    await nextTick();
 
-    table.value = window.$("#myTable").DataTable();
+    dataTable = window.$("#myTable").DataTable();
   } catch (e) {
     toast.error("Failed to Load" + e);
   }
@@ -36,30 +38,41 @@ const editProductName = ref("");
 const editPrice = ref("");
 const editQuantity = ref("");
 const editImage = ref(null);
+const editImagePreview = ref("");
 
 const editBtn = (product) => {
   editProductName.value = product.product_name;
   editPrice.value = product.price;
   editQuantity.value = product.quantity;
-  editImage.value = product.image_url;
+  editImage.value = null;
+  editImagePreview.value = product.image_url;
 };
 
 const handleImage = (e) => {
-  editImage.value = e.target.files[0];
+  const file = e.target.files[0];
+
+  if (!file) return;
+
+  editImage.value = file;
+  editImagePreview.value = URL.createObjectURL(file);
 };
 
 const updateBtn = async (id) => {
   const fd = new FormData();
+  fd.append("_method", "PUT");
   fd.append("product_name", editProductName.value);
   fd.append("price", editPrice.value);
   fd.append("quantity", editQuantity.value);
-  fd.append("image", editImage.value);
+
+  if (editImage.value) {
+    fd.append("image", editImage.value);
+  }
 
   try {
-    const res = await api.put(`/${id}`, fd);
+    await api.post(`/${id}`, fd);
 
     toast.success("Product updated successfully");
-    display();
+    await display();
   } catch (e) {
     toast.error("Error " + e);
   }
@@ -197,7 +210,7 @@ onMounted(display);
                         </div>
 
                         <img
-                          :src="editImage"
+                          :src="editImagePreview"
                           alt=""
                           class="mx-auto"
                           style="width: 80px; height: 80px"
@@ -223,7 +236,11 @@ onMounted(display);
                           >
                             Close
                           </button>
-                          <button type="submit" class="btn btn-primary">
+                          <button
+                            type="submit"
+                            class="btn btn-primary"
+                            data-bs-dismiss="modal"
+                          >
                             Update
                           </button>
                         </div>
