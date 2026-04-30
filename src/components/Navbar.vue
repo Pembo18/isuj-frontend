@@ -19,7 +19,8 @@
         <ul class="navbar-nav me-auto mt-2 mt-lg-0">
           <li class="nav-item">
             <RouterLink class="nav-link active" :to="'/'" aria-current="page"
-              >Home <span class="visually-hidden">(current)</span></RouterLink
+              >All Products
+              <span class="visually-hidden">(current)</span></RouterLink
             >
           </li>
           <li class="nav-item">
