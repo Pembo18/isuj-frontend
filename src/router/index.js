@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AllProducts from '@/view/AllProducts.vue'
 import AddProduct from '@/view/AddProduct.vue'
+import NotFound from '@/view/NotFound.vue'
 
 const router = createRouter(
     {
@@ -15,6 +16,11 @@ const router = createRouter(
                 path: '/add',
                 name: 'add',
                 component: AddProduct
+            },
+             {
+                path: '/:pathMatch(.*)*',
+                name: 'notfound',
+                component: NotFound
             },
         ]
     }

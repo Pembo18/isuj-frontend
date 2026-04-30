@@ -10,12 +10,16 @@ const display = async () => {
     const res = await api.get("");
     products.value = res.data;
     console.log(products.value);
-    products.value.created_at = Date("mm/dd/yyyy");
 
     await nextTick();
-    $("#myTable").DataTable();
+
+    table.value = window.$("#myTable").DataTable();
   } catch (e) {}
 };
+
+$("#Edit").on("click", function () {
+  console.log("Edit button clicked");
+});
 
 onMounted(() => {
   display();
@@ -35,6 +39,7 @@ onMounted(() => {
             <th scope="col">Image</th>
             <th scope="col">Created at</th>
             <th scope="col">Update at</th>
+            <th scope="col" colspan="2">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -52,6 +57,10 @@ onMounted(() => {
             </td>
             <td>{{ product.created_at }}</td>
             <td>{{ product.updated_at }}</td>
+            <td colspan="2">
+              <button id="Edit">Edit</button>
+              <button>Delete</button>
+            </td>
           </tr>
         </tbody>
       </table>
